@@ -1,25 +1,27 @@
 import requests
 from flask import Flask, render_template, request
-from flask_sqlalchemy import SQLAlchemy
+import json
 
 app = Flask(__name__)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    url = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=imperial&appid=5a1e92988643e6c2a4036afd5872619f'
-    city = 'Las Vegas'
-    r = requests.get(url.format(city)).json()
-    print(r)
+    if request.method == 'POST':
+        city = request.form['city']
+        
+        url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&units=imperial&appid=5a1e92988643e6c2a4036afd5872619f'
 
-    weather = {
-        'city' : city,
-        'temperature' : r['main']['temp'],
-        'description' : r['weather'][0]['description'],
-        'icon' : r['weather'][0]['icon']
-    }
-    print(weather)
-    return render_template('weather.html', weather=weather)
+        weather_data = requests.get(url).json()
+    
+        temp = weather_data['main']['temp']
+        wind_speed = weather_data['wind']['speed']
+        description = weather_data['weather'][0]['description']
+
+  
+        return render_template('results.html', temp=temp, description=description, wind_speed=wind_speed, city=city)
+
+    return render_template('index.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
